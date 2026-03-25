@@ -2,7 +2,7 @@
 name = "alice-audio"
 version = "1.0.0"
 edition = "2021"
-authors = ["Moroya Sakamoto"]
+authors = ["Moroya Sakamoto <sakamoro@alicelaw.net>"]
 license = "MIT OR Apache-2.0"
 description = "General-purpose audio processing: FFT, filters, mixer, effects, waveform generation, sample rate conversion, ADSR envelope, ring buffer"
 
