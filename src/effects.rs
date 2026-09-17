@@ -92,15 +92,16 @@ impl Reverb {
     }
 }
 
-/// Comb filter used internally by reverb.
-pub(crate) struct CombFilter {
+/// Feedback comb filter `H(z) = z⁻ᴰ / (1 − g z⁻ᴰ)` (reverb building block).
+pub struct CombFilter {
     buffer: RingBuffer,
     delay: usize,
     feedback: f64,
 }
 
 impl CombFilter {
-    fn new(delay: usize, feedback: f64) -> Self {
+    #[must_use]
+    pub fn new(delay: usize, feedback: f64) -> Self {
         Self {
             buffer: RingBuffer::new(delay + 1),
             delay,
@@ -108,23 +109,29 @@ impl CombFilter {
         }
     }
 
-    fn process(&mut self, sample: f64) -> f64 {
+    pub fn process(&mut self, sample: f64) -> f64 {
         let delayed = self.buffer.read(self.delay);
         let out = delayed.mul_add(self.feedback, sample);
         self.buffer.push(out);
         delayed
     }
+
+    pub fn process_buffer(&mut self, samples: &[f64]) -> Vec<f64> {
+        samples.iter().map(|&s| self.process(s)).collect()
+    }
 }
 
-/// All-pass filter used internally by reverb.
-pub(crate) struct AllPassFilter {
+/// Schroeder all-pass `H(z) = (−g + z⁻ᴰ) / (1 − g z⁻ᴰ)`, `|H(ω)| = 1`
+/// (reverb building block).
+pub struct AllPassFilter {
     buffer: RingBuffer,
     delay: usize,
     gain: f64,
 }
 
 impl AllPassFilter {
-    fn new(delay: usize, gain: f64) -> Self {
+    #[must_use]
+    pub fn new(delay: usize, gain: f64) -> Self {
         Self {
             buffer: RingBuffer::new(delay + 1),
             delay,
@@ -132,11 +139,20 @@ impl AllPassFilter {
         }
     }
 
-    fn process(&mut self, sample: f64) -> f64 {
+    /// `v[n] = x[n] + g·v[n−D]`, `y[n] = −g·v[n] + v[n−D]`.
+    ///
+    /// Until 2026-09-17 the output used `−g·x[n]` (the raw input instead of
+    /// the delay-line input `v`), which is not all-pass: |H| reached 1.7 at
+    /// low frequencies (oracle `tests/analytic_oracle.rs`).
+    pub fn process(&mut self, sample: f64) -> f64 {
         let delayed = self.buffer.read(self.delay);
         let input = delayed.mul_add(self.gain, sample);
         self.buffer.push(input);
-        sample.mul_add(-self.gain, delayed)
+        input.mul_add(-self.gain, delayed)
+    }
+
+    pub fn process_buffer(&mut self, samples: &[f64]) -> Vec<f64> {
+        samples.iter().map(|&s| self.process(s)).collect()
     }
 }
 
