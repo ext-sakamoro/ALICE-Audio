@@ -6,6 +6,17 @@
 //! The inputs are built without any transcendental: the crate's own LCG noise (integer arithmetic)
 //! and impulses. Each pin is FNV-1a 64 over the little-endian bytes of the output's `f64` bits.
 //! `ALICE_AUDIO_PRINT_PINS=1 cargo test --test cross_target_bits -- --nocapture` prints every pin.
+//!
+//! Two inputs are chosen so that a platform `sin` / `cos` put back in place of det-math moves a pin
+//! on a target whose libm gives other bits there (found by comparing `f64::sin` / `f64::cos` with
+//! `sin64` / `cos64` on the arguments these functions form, measured on aarch64 macOS only; Linux and
+//! Windows were not measured, so these two inputs are known to catch the change on the macOS lane):
+//! - `fir_low_pass_order_55`: the window `cos(2π i / 55)` differs in the last bit at 6 of its 56 terms
+//!   (the other FIR pins use orders 31 and 63, where no term, or one that rounds away, differs);
+//! - `chorus_lfo_edge`: at rate 1.5 Hz the lfo `sin(2π·phase)` differs in the last bit at 135 of the
+//!   first 4096 samples, but the delay is `(depth·lfo + depth) as usize`, which a last-bit change
+//!   rarely moves; with `depth = f64::from_bits(0x3ffb_4be0_9a58_bf2f)` (≈ 1.706) the delay at sample
+//!   882 is 1 with det-math and 2 with that libm.
 
 use alice_audio::{
     fft, gen_noise, gen_sawtooth, gen_sine, gen_square, ifft, mix_channels, pan_stereo, resample,
@@ -97,6 +108,16 @@ fn cases() -> Vec<(&'static str, u64)> {
         (
             "chorus",
             fold(Chorus::new(SR, 1.5, 24.0, 0.5).process_buffer(&x)),
+        ),
+        (
+            "chorus_lfo_edge",
+            fold(
+                Chorus::new(SR, 1.5, f64::from_bits(0x3ffb_4be0_9a58_bf2f), 0.5).process_buffer(&x),
+            ),
+        ),
+        (
+            "fir_low_pass_order_55",
+            fold(FirFilter::low_pass(1_000.0, SR, 55).process_buffer(&x)),
         ),
         ("resample", fold(resample(&x, SR, 44_100.0))),
         (
@@ -202,6 +223,8 @@ const PINS: &[(&str, u64)] = &[
     ("comb", 0xdcf2b42fc28d179b),
     ("all_pass", 0xfe1c70b6b0711121),
     ("chorus", 0xdffafe03dcbd8caa),
+    ("chorus_lfo_edge", 0xabc5733282570ad8),
+    ("fir_low_pass_order_55", 0x5fe48fab89ebe759),
     ("resample", 0xd6953a2e57df7439),
     ("adsr", 0x6b7c29a184a6613c),
     ("fft", 0xfab9eac9d6365caf),
