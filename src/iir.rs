@@ -1,4 +1,5 @@
 //! `IirFilter` — second-order IIR (biquad) filter.
+use alice_det_math::{cos64, sin64};
 
 use core::f64::consts::PI;
 
@@ -36,8 +37,8 @@ impl IirFilter {
     /// Design a low-pass biquad filter.
     pub fn low_pass(cutoff: f64, sample_rate: f64, q: f64) -> Self {
         let w0 = 2.0 * PI * cutoff / sample_rate;
-        let alpha = w0.sin() / (2.0 * q);
-        let cos_w0 = w0.cos();
+        let alpha = sin64(w0) / (2.0 * q);
+        let cos_w0 = cos64(w0);
         let b0 = (1.0 - cos_w0) / 2.0;
         let b1 = 1.0 - cos_w0;
         let b2 = (1.0 - cos_w0) / 2.0;
@@ -50,8 +51,8 @@ impl IirFilter {
     /// Design a high-pass biquad filter.
     pub fn high_pass(cutoff: f64, sample_rate: f64, q: f64) -> Self {
         let w0 = 2.0 * PI * cutoff / sample_rate;
-        let alpha = w0.sin() / (2.0 * q);
-        let cos_w0 = w0.cos();
+        let alpha = sin64(w0) / (2.0 * q);
+        let cos_w0 = cos64(w0);
         let b0 = f64::midpoint(1.0, cos_w0);
         let b1 = -(1.0 + cos_w0);
         let b2 = f64::midpoint(1.0, cos_w0);
@@ -64,8 +65,8 @@ impl IirFilter {
     /// Design a band-pass biquad filter.
     pub fn band_pass(center: f64, sample_rate: f64, q: f64) -> Self {
         let w0 = 2.0 * PI * center / sample_rate;
-        let alpha = w0.sin() / (2.0 * q);
-        let cos_w0 = w0.cos();
+        let alpha = sin64(w0) / (2.0 * q);
+        let cos_w0 = cos64(w0);
         let b0 = alpha;
         let b1 = 0.0;
         let b2 = -alpha;

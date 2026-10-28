@@ -4,4 +4,12 @@ version = 4
 
 [[package]]
 name = "alice-audio"
-version = "1.0.0"
+version = "2.0.0"
+dependencies = [
+ "alice-det-math",
+]
+
+[[package]]
+name = "alice-det-math"
+version = "0.6.1"
+source = "git+https://github.com/ext-sakamoro/ALICE-DetMath?rev=98fd88465675bb53c0152438b8ead71655063548#98fd88465675bb53c0152438b8ead71655063548"

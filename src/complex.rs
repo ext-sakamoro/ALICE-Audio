@@ -1,4 +1,5 @@
 //! Complex number + FFT (Cooley-Tukey radix-2 DIT).
+use alice_det_math::{atan2_64, cos64, hypot64, sin64};
 
 use core::f64::consts::PI;
 
@@ -17,12 +18,12 @@ impl Complex {
 
     #[inline]
     pub fn magnitude(self) -> f64 {
-        self.re.hypot(self.im)
+        hypot64(self.re, self.im)
     }
 
     #[inline]
     pub fn phase(self) -> f64 {
-        self.im.atan2(self.re)
+        atan2_64(self.im, self.re)
     }
 }
 
@@ -70,7 +71,7 @@ pub fn fft(data: &mut [Complex]) {
         let half = size / 2;
         let angle_step = -2.0 * PI / size as f64;
         for k in 0..half {
-            let w = Complex::new((angle_step * k as f64).cos(), (angle_step * k as f64).sin());
+            let w = Complex::new(cos64(angle_step * k as f64), sin64(angle_step * k as f64));
             let mut j = k;
             while j < n {
                 let t = w * data[j + half];

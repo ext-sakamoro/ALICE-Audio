@@ -21,7 +21,9 @@
 //! - resample: linear ×2 upsampling has line gain (1 + cos(πk/N))/2 and an
 //!   image (1 − cos(πk/N))/2 at N − k; ÷2 is exact decimation; a ramp is exact
 //! - utility: rms of a sine A/√2, dB gain 10^(dB/20), tanh slope = drive
-
+// The expected values are computed here with the platform libm on purpose: an independent
+// reference, compared within each oracle's tolerance, not the crate's own deterministic path.
+#![allow(clippy::disallowed_methods)]
 #![allow(
     clippy::cast_precision_loss,
     clippy::cast_possible_truncation,

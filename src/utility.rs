@@ -1,4 +1,5 @@
 //! Utility: RMS, peak, normalize, gain, clip.
+use alice_det_math::{clamp64, max64, powf64, tanh64};
 
 /// Compute RMS of a signal.
 pub fn rms(signal: &[f64]) -> f64 {
@@ -11,7 +12,7 @@ pub fn rms(signal: &[f64]) -> f64 {
 
 /// Compute peak amplitude.
 pub fn peak(signal: &[f64]) -> f64 {
-    signal.iter().map(|s| s.abs()).fold(0.0_f64, f64::max)
+    signal.iter().map(|s| s.abs()).fold(0.0_f64, max64)
 }
 
 /// Normalize a signal to peak amplitude of 1.0.
@@ -27,7 +28,7 @@ pub fn normalize(signal: &mut [f64]) {
 
 /// Apply gain in decibels.
 pub fn apply_gain_db(signal: &mut [f64], db: f64) {
-    let gain = 10.0_f64.powf(db / 20.0);
+    let gain = powf64(10.0, db / 20.0);
     for s in signal.iter_mut() {
         *s *= gain;
     }
@@ -36,13 +37,13 @@ pub fn apply_gain_db(signal: &mut [f64], db: f64) {
 /// Hard clip a signal to [-threshold, threshold].
 pub fn hard_clip(signal: &mut [f64], threshold: f64) {
     for s in signal.iter_mut() {
-        *s = s.clamp(-threshold, threshold);
+        *s = clamp64(*s, -threshold, threshold);
     }
 }
 
 /// Soft clip using tanh.
 pub fn soft_clip(signal: &mut [f64], drive: f64) {
     for s in signal.iter_mut() {
-        *s = (*s * drive).tanh();
+        *s = tanh64(*s * drive);
     }
 }

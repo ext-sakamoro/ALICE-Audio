@@ -1,11 +1,12 @@
 //! Waveform generation: sine / square / sawtooth / noise.
+use alice_det_math::sin64;
 
 use core::f64::consts::PI;
 
 /// Generate a sine wave.
 pub fn gen_sine(frequency: f64, sample_rate: f64, num_samples: usize) -> Vec<f64> {
     (0..num_samples)
-        .map(|i| (2.0 * PI * frequency * i as f64 / sample_rate).sin())
+        .map(|i| sin64(2.0 * PI * frequency * i as f64 / sample_rate))
         .collect()
 }
 

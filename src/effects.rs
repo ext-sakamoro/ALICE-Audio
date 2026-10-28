@@ -1,4 +1,5 @@
 //! Effects: `Delay`, `Reverb`, `Chorus`, `EqBand`, `Equalizer`.
+use alice_det_math::{clamp64, cos64, powf64, sin64};
 
 use core::f64::consts::PI;
 
@@ -18,8 +19,8 @@ impl Delay {
         Self {
             buffer: RingBuffer::new(delay_samples + 1),
             delay_samples,
-            feedback: feedback.clamp(0.0, 0.99),
-            mix: mix.clamp(0.0, 1.0),
+            feedback: clamp64(feedback, 0.0, 0.99),
+            mix: clamp64(mix, 0.0, 1.0),
         }
     }
 
@@ -68,7 +69,7 @@ impl Reverb {
         Self {
             combs,
             allpasses,
-            mix: mix.clamp(0.0, 1.0),
+            mix: clamp64(mix, 0.0, 1.0),
         }
     }
 
@@ -178,7 +179,7 @@ impl Chorus {
             buffer: RingBuffer::new(max_delay),
             rate,
             depth,
-            mix: mix.clamp(0.0, 1.0),
+            mix: clamp64(mix, 0.0, 1.0),
             phase: 0.0,
             sample_rate,
         }
@@ -187,7 +188,7 @@ impl Chorus {
     pub fn process(&mut self, sample: f64) -> f64 {
         self.buffer.push(sample);
 
-        let lfo = (2.0 * PI * self.phase).sin();
+        let lfo = sin64(2.0 * PI * self.phase);
         self.phase += self.rate / self.sample_rate;
         if self.phase >= 1.0 {
             self.phase -= 1.0;
@@ -212,10 +213,10 @@ pub struct EqBand {
 impl EqBand {
     /// Create a peaking EQ band.
     pub fn peaking(center: f64, sample_rate: f64, gain_db: f64, q: f64) -> Self {
-        let a = 10.0_f64.powf(gain_db / 40.0);
+        let a = powf64(10.0, gain_db / 40.0);
         let w0 = 2.0 * PI * center / sample_rate;
-        let alpha = w0.sin() / (2.0 * q);
-        let cos_w0 = w0.cos();
+        let alpha = sin64(w0) / (2.0 * q);
+        let cos_w0 = cos64(w0);
 
         let b0 = 1.0 + alpha * a;
         let b1 = -2.0 * cos_w0;

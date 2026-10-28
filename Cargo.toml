@@ -1,6 +1,6 @@
 [package]
 name = "alice-audio"
-version = "1.0.0"
+version = "2.0.0"
 edition = "2021"
 authors = ["Moroya Sakamoto <sakamoro@alicelaw.net>"]
 license = "LicenseRef-Proprietary"
@@ -9,3 +9,8 @@ description = "General-purpose audio processing: FFT, filters, mixer, effects, w
 
 [lib]
 crate-type = ["rlib"]
+
+[dependencies]
+# every transcendental and every f64 max / min / clamp goes through alice-det-math, so the output is a
+# pure function of the input bits on every target (clippy.toml bans the platform functions)
+alice-det-math = { git = "https://github.com/ext-sakamoro/ALICE-DetMath", rev = "98fd88465675bb53c0152438b8ead71655063548", version = "0.6.1", default-features = false, features = ["std"] }

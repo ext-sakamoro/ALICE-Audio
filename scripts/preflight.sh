@@ -39,5 +39,7 @@ step "ci.yml / test: Test"
 
 step "ci.yml / test: Analytic oracle"
 ( export CARGO_TERM_COLOR="always"; cargo test --test analytic_oracle )
+step "ci.yml / test: Cross-target bit pins"
+( export CARGO_TERM_COLOR="always"; cargo test --test cross_target_bits; cargo test --release --test cross_target_bits )
 
 echo; echo "preflight OK"

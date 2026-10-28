@@ -1,4 +1,5 @@
 //! Multi-channel mixer + stereo pan.
+use alice_det_math::clamp64;
 
 /// Mix multiple mono channels into a single output with per-channel gain.
 pub fn mix_channels(channels: &[&[f64]], gains: &[f64]) -> Vec<f64> {
@@ -18,7 +19,7 @@ pub fn mix_channels(channels: &[&[f64]], gains: &[f64]) -> Vec<f64> {
 
 /// Pan a mono signal to stereo. `pan` ranges from -1.0 (left) to 1.0 (right).
 pub fn pan_stereo(mono: &[f64], pan: f64) -> (Vec<f64>, Vec<f64>) {
-    let pan_clamped = pan.clamp(-1.0, 1.0);
+    let pan_clamped = clamp64(pan, -1.0, 1.0);
     let left_gain = ((1.0 - pan_clamped) / 2.0).sqrt();
     let right_gain = f64::midpoint(1.0, pan_clamped).sqrt();
     let left: Vec<f64> = mono.iter().map(|&s| s * left_gain).collect();

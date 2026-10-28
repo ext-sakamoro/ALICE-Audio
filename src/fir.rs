@@ -1,4 +1,5 @@
 //! `FirFilter` — Finite Impulse Response filter.
+use alice_det_math::{cos64, sin64};
 
 use core::f64::consts::PI;
 
@@ -35,9 +36,9 @@ impl FirFilter {
                 let sinc = if n.abs() < 1e-12 {
                     2.0 * fc
                 } else {
-                    (2.0 * PI * fc * n).sin() / (PI * n)
+                    sin64(2.0 * PI * fc * n) / (PI * n)
                 };
-                let window = 0.46f64.mul_add(-(2.0 * PI * i as f64 / order as f64).cos(), 0.54);
+                let window = 0.46f64.mul_add(-cos64(2.0 * PI * i as f64 / order as f64), 0.54);
                 sinc * window
             })
             .collect();

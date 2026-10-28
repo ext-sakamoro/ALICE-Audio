@@ -19,6 +19,10 @@ General-purpose audio processing library for [Project A.L.I.C.E.](https://github
 - **Sample Rate Conversion** — resampling with interpolation
 - **ADSR Envelope** — attack/decay/sustain/release envelope generator
 - **Ring Buffer** — lock-free circular buffer for real-time audio
+- **Bit-identical on every target** — every transcendental (sin, cos, powf, tanh, hypot, atan2) and every
+  `f64` max / clamp goes through `alice-det-math`, so each output is a pure function of its input bits on
+  Linux, macOS, Windows and wasm32; `tests/cross_target_bits.rs` pins the output bits of every public
+  function and CI checks them on Linux, macOS and Windows
 
 ## Quick Start
 

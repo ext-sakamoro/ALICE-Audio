@@ -22,8 +22,14 @@ jobs:
         run: cargo fmt -- --check
 
   test:
-    name: Test + Clippy
-    runs-on: ubuntu-latest
+    name: Test + Clippy (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # the output bits are pinned (tests/cross_target_bits.rs): the same pins on Linux x86_64,
+        # macOS aarch64 and Windows x86_64
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -36,6 +42,12 @@ jobs:
         run: cargo test
       - name: Analytic oracle
         run: cargo test --test analytic_oracle
+      # clippy.toml bans the platform transcendentals and max / min / clamp; these pins catch a
+      # target that still computes different bits (debug and release)
+      - name: Cross-target bit pins
+        run: |
+          cargo test --test cross_target_bits
+          cargo test --release --test cross_target_bits
 
   actionlint:
     name: actionlint (workflow YAML 検証)

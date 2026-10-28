@@ -11,6 +11,7 @@
     clippy::manual_range_contains
 )]
 
+use alice_det_math::{powf64, sin64};
 use core::f64::consts::PI;
 
 use crate::adsr::*;
@@ -120,7 +121,7 @@ fn test_fft_ifft_roundtrip() {
 #[test]
 fn test_fft_parseval() {
     let mut data: Vec<Complex> = (0..16)
-        .map(|i| Complex::new((i as f64 * 0.3).sin(), 0.0))
+        .map(|i| Complex::new(sin64(i as f64 * 0.3), 0.0))
         .collect();
     let time_energy: f64 = data.iter().map(|c| c.re * c.re + c.im * c.im).sum();
     fft(&mut data);
@@ -131,9 +132,7 @@ fn test_fft_parseval() {
 #[test]
 fn test_fft_linearity() {
     let a: Vec<Complex> = (0..8).map(|i| Complex::new(i as f64, 0.0)).collect();
-    let b: Vec<Complex> = (0..8)
-        .map(|i| Complex::new((i as f64).sin(), 0.0))
-        .collect();
+    let b: Vec<Complex> = (0..8).map(|i| Complex::new(sin64(i as f64), 0.0)).collect();
     let sum: Vec<Complex> = a.iter().zip(b.iter()).map(|(&x, &y)| x + y).collect();
 
     let mut fa = a;
@@ -161,7 +160,7 @@ fn test_fft_non_power_of_two() {
 fn test_fft_large() {
     let n = 256;
     let mut data: Vec<Complex> = (0..n)
-        .map(|i| Complex::new((2.0 * PI * 4.0 * i as f64 / n as f64).sin(), 0.0))
+        .map(|i| Complex::new(sin64(2.0 * PI * 4.0 * i as f64 / n as f64), 0.0))
         .collect();
     fft(&mut data);
     let peak_bin = data
@@ -694,7 +693,7 @@ fn test_normalize_silent() {
 fn test_apply_gain_db() {
     let mut signal = vec![1.0];
     apply_gain_db(&mut signal, 6.0);
-    assert!(approx_eq(signal[0], 10.0_f64.powf(6.0 / 20.0), 0.01));
+    assert!(approx_eq(signal[0], powf64(10.0, 6.0 / 20.0), 0.01));
 }
 
 #[test]
