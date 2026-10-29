@@ -44,10 +44,49 @@ jobs:
         run: cargo test --test analytic_oracle
       # clippy.toml bans the platform transcendentals and max / min / clamp; these pins catch a
       # target that still computes different bits (debug and release)
+      # each run must print `pins compared: N` with N > 0 (the test asserts N is the pin count), so a
+      # run that compared nothing cannot pass
       - name: Cross-target bit pins
+        shell: bash
         run: |
-          cargo test --test cross_target_bits
-          cargo test --release --test cross_target_bits
+          set -euo pipefail
+          for profile in "" "--release"; do
+            out=$(cargo test $profile --test cross_target_bits -- --nocapture 2>&1) || { echo "$out"; exit 1; }
+            echo "$out" | grep -E '^test |pins compared'
+            echo "$out" | grep -qE 'pins compared: [1-9][0-9]*[[:space:]]*$' || { echo "::error::no pins compared"; exit 1; }
+          done
+
+  wasm:
+    name: Cross-target bit pins (wasm32-wasip1 via wasmtime)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip1
+      # dtolnay/rust-toolchain's `targets:` has silently skipped the rustup target add before; the
+      # explicit call is idempotent
+      - name: Ensure wasm32-wasip1 rust-std is installed
+        run: rustup target add wasm32-wasip1
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: wasm-wasip1
+      - name: Install wasmtime
+        uses: bytecodealliance/actions/wasmtime/setup@v1
+      # the same pins as the native lanes, debug and release; `pins compared: N` with N > 0 required
+      - name: Cross-target bit pins via wasmtime
+        run: |
+          set -euo pipefail
+          for profile in debug release; do
+            flag=""; [ "$profile" = release ] && flag="--release"
+            cargo test $flag --target wasm32-wasip1 --test cross_target_bits --no-run
+            bin=$(find "target/wasm32-wasip1/$profile/deps" -name 'cross_target_bits-*.wasm' | head -1)
+            [ -n "$bin" ] || { echo "::error::no cross_target_bits wasm binary ($profile)"; exit 1; }
+            out=$(wasmtime "$bin" --nocapture 2>&1) || { echo "$out"; exit 1; }
+            echo "$out" | grep -E '^test |pins compared'
+            echo "$out" | grep -qE 'pins compared: [1-9][0-9]*[[:space:]]*$' || { echo "::error::no pins compared ($profile)"; exit 1; }
+          done
 
   actionlint:
     name: actionlint (workflow YAML 検証)

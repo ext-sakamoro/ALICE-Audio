@@ -40,6 +40,25 @@ step "ci.yml / test: Test"
 step "ci.yml / test: Analytic oracle"
 ( export CARGO_TERM_COLOR="always"; cargo test --test analytic_oracle )
 step "ci.yml / test: Cross-target bit pins"
-( export CARGO_TERM_COLOR="always"; cargo test --test cross_target_bits; cargo test --release --test cross_target_bits )
+( export CARGO_TERM_COLOR="always"
+  for profile in "" "--release"; do
+    out=$(cargo test $profile --test cross_target_bits -- --nocapture 2>&1) || { echo "$out"; exit 1; }
+    echo "$out" | grep -E '^test |pins compared'
+    echo "$out" | grep -qE 'pins compared: [1-9][0-9]*[[:space:]]*$' || { echo "no pins compared" >&2; exit 1; }
+  done )
+
+step "ci.yml / wasm: Cross-target bit pins via wasmtime"
+need wasmtime "brew install wasmtime"
+rustup target list --installed | grep -q '^wasm32-wasip1$' || rustup target add wasm32-wasip1
+( export CARGO_TERM_COLOR="always"
+  for profile in debug release; do
+    flag=""; [ "$profile" = release ] && flag="--release"
+    cargo test $flag --target wasm32-wasip1 --test cross_target_bits --no-run
+    bin=$(find "target/wasm32-wasip1/$profile/deps" -name 'cross_target_bits-*.wasm' | head -1)
+    [ -n "$bin" ] || { echo "no cross_target_bits wasm binary ($profile)" >&2; exit 1; }
+    out=$(wasmtime "$bin" --nocapture 2>&1) || { echo "$out"; exit 1; }
+    echo "$out" | grep -E '^test |pins compared'
+    echo "$out" | grep -qE 'pins compared: [1-9][0-9]*[[:space:]]*$' || { echo "no pins compared ($profile)" >&2; exit 1; }
+  done )
 
 echo; echo "preflight OK"

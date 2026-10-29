@@ -273,4 +273,6 @@ fn every_output_matches_its_pin_on_this_target() {
         compared += 1;
     }
     assert_eq!(compared, PINS.len(), "a pin names no case");
+    // CI greps this line on every target (a lane that ran no comparison has no such line)
+    println!("pins compared: {compared}");
 }

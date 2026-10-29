@@ -22,7 +22,7 @@ General-purpose audio processing library for [Project A.L.I.C.E.](https://github
 - **Bit-identical on every target** — every transcendental (sin, cos, powf, tanh, hypot, atan2) and every
   `f64` max / clamp goes through `alice-det-math`, so each output is a pure function of its input bits on
   Linux, macOS, Windows and wasm32; `tests/cross_target_bits.rs` pins the output bits of every public
-  function and CI checks them on Linux, macOS and Windows
+  function and CI checks them on Linux, macOS and Windows, and on wasm32-wasip1 under wasmtime
 
 ## Quick Start
 

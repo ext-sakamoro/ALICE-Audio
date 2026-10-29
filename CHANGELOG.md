@@ -13,6 +13,7 @@ and this crate adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ### Added
 
-- `clippy.toml`: platform の超越関数 (`f64` / `f32` の sin、cos、tan、asin、acos、atan、atan2、sinh、cosh、tanh、exp、exp2、exp_m1、ln、ln_1p、log、log2、log10、powf、powi、cbrt、hypot) と max / min / clamp を禁止 (`cargo clippy --all-targets -- -D warnings` で検出、独立な参照値を platform の libm で計算する `tests/analytic_oracle.rs` だけは理由つきで許可)
-- `tests/cross_target_bits.rs`: 全ての公開関数の出力の bit を固定入力 (crate 自身の LCG の noise と impulse、超越関数を使わない) で 39 件 pin (FNV-1a 64) 係数の設計は cutoff・Q・gain を掃引して、1 点では出ない最後の bit の差も pin に届くようにした CI の test job を Linux・macOS・Windows の matrix にし、debug と release で同じ pin を確かめる (preflight も同じ step)
+- `clippy.toml`: platform の超越関数 (`f64` / `f32` の sin、cos、tan、asin、acos、atan、atan2、sinh、cosh、tanh、exp、exp2、exp_m1、ln、ln_1p、log、log2、log10、powf、powi、cbrt、hypot、asinh、acosh、atanh) と max / min / clamp を禁止 (`cargo clippy --all-targets -- -D warnings` で検出、独立な参照値を platform の libm で計算する `tests/analytic_oracle.rs` だけは理由つきで許可)
+- `tests/cross_target_bits.rs`: 全ての公開関数の出力の bit を固定入力 (crate 自身の LCG の noise と impulse、超越関数を使わない) で 41 件 pin (FNV-1a 64) 係数の設計は cutoff・Q・gain を掃引して、1 点では出ない最後の bit の差も pin に届くようにした CI の test job を Linux・macOS・Windows の matrix にし、debug と release で同じ pin を確かめる (preflight も同じ step) platform の sin / cos を戻すと bit が動く入力を 2 つ足した (55 tap の FIR と、lfo の最後の bit で delay が変わる depth の chorus、探索は試験の doc、aarch64 macOS で測定) 実行ごとに `pins compared: N` を出し、CI と preflight は N > 0 の行が無ければ失敗する
 - 依存: `alice-det-math` 0.6.1 (git rev、`std`)
+- CI: wasm32-wasip1 の lane (wasmtime で `tests/cross_target_bits.rs` を debug と release で実行) README の wasm32 での bit 一致の記述をこの lane が確かめる (preflight にも同じ step)

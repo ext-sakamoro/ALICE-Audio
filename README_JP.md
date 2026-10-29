@@ -21,7 +21,7 @@
 - **リングバッファ** — リアルタイムオーディオ用循環バッファ
 - **全ての target で bit 一致** — 超越関数 (sin、cos、powf、tanh、hypot、atan2) と `f64` の max / clamp は
   全て `alice-det-math` を通るので、出力は Linux・macOS・Windows・wasm32 で入力の bit だけで決まる
-  `tests/cross_target_bits.rs` が全ての公開関数の出力の bit を固定し、CI が Linux・macOS・Windows で確かめる
+  `tests/cross_target_bits.rs` が全ての公開関数の出力の bit を固定し、CI が Linux・macOS・Windows と wasm32-wasip1 (wasmtime) で確かめる
 
 ## クイックスタート
 
