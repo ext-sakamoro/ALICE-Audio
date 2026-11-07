@@ -24,11 +24,14 @@ pub mod complex;
 pub mod effects;
 pub mod fir;
 pub mod iir;
+pub mod impact;
 pub mod mixer;
 pub mod prelude;
 pub mod resample;
 pub mod ring_buffer;
 pub mod utility;
+#[cfg(feature = "wasm")]
+pub mod wasm;
 pub mod waveform;
 
 #[cfg(test)]
@@ -40,6 +43,7 @@ pub use crate::complex::*;
 pub use crate::effects::*;
 pub use crate::fir::*;
 pub use crate::iir::*;
+pub use crate::impact::*;
 pub use crate::mixer::*;
 pub use crate::resample::*;
 pub use crate::ring_buffer::*;

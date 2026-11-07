@@ -19,9 +19,9 @@
 //!   882 is 1 with det-math and 2 with that libm.
 
 use alice_audio::{
-    fft, gen_noise, gen_sawtooth, gen_sine, gen_square, ifft, mix_channels, pan_stereo, resample,
-    utility, Adsr, AllPassFilter, Chorus, CombFilter, Complex, Delay, EqBand, Equalizer, FirFilter,
-    IirFilter, Reverb,
+    fft, gen_noise, gen_sawtooth, gen_sine, gen_square, ifft, mix_channels, pan_stereo,
+    render_impact, resample, utility, Adsr, AllPassFilter, Chorus, CombFilter, Complex, Delay,
+    EqBand, Equalizer, FirFilter, IirFilter, ImpactMaterial, ImpactVoice, Reverb,
 };
 
 const N: usize = 4096;
@@ -201,11 +201,21 @@ fn cases() -> Vec<(&'static str, u64)> {
         .into_iter()
         .flat_map(|rate| Chorus::new(SR, rate, 24.0, 0.5).process_buffer(&x));
     out.push(("chorus_rates", fold(chorus.collect::<Vec<_>>())));
+    for (name, material) in [
+        ("impact_hard_metal", ImpactMaterial::HardMetal),
+        ("impact_soft", ImpactMaterial::Soft),
+    ] {
+        let samples = render_impact(&ImpactVoice::from_speed(material, 3.5), SR);
+        assert!(!samples.is_empty());
+        out.push((name, fold(samples.iter().map(|&v| f64::from(v)))));
+    }
     out
 }
 
 /// The recorded pins (from `ALICE_AUDIO_PRINT_PINS=1`; debug and release print the same)
 const PINS: &[(&str, u64)] = &[
+    ("impact_hard_metal", 0x1963ef49598fd5b8),
+    ("impact_soft", 0xc18181cf535e429b),
     ("gen_sine", 0x75d48b3e614196c4),
     ("gen_square", 0x470db53e16fa5ba5),
     ("gen_sawtooth", 0x5d31cb714420ebe6),

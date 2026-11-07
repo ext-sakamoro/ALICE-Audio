@@ -14,3 +14,10 @@ crate-type = ["rlib"]
 # every transcendental and every f64 max / min / clamp goes through alice-det-math, so the output is a
 # pure function of the input bits on every target (clippy.toml bans the platform functions)
 alice-det-math = { git = "https://github.com/ext-sakamoro/ALICE-DetMath", rev = "98fd88465675bb53c0152438b8ead71655063548", version = "0.6.1", default-features = false, features = ["std"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = { version = "0.2", optional = true }
+
+[features]
+# `renderImpact` for WebAssembly
+wasm = ["dep:wasm-bindgen"]
