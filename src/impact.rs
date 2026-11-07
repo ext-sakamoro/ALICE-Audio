@@ -21,6 +21,8 @@ pub const END_LEVEL: f64 = 0.0001;
 pub const TAIL_S: f64 = 0.02;
 /// Speed at which an impact is at full strength, in m/s.
 pub const FULL_SPEED: f64 = 6.0;
+/// The most samples one impact can have: about 87 s at 48 kHz.
+pub const MAX_IMPACT_SAMPLES: usize = 1 << 22;
 /// Q of the noise's low-pass.
 const NOISE_Q: f64 = 1.122_018_454_301_963_3;
 const NOISE_SEED: u64 = 0x9e37_79b9;

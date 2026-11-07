@@ -5,7 +5,8 @@
 #![allow(clippy::disallowed_methods)]
 
 use alice_audio::{
-    render_impact, ImpactMaterial, ImpactVoice, ImpactWave, ATTACK_S, END_LEVEL, TAIL_S,
+    render_impact, ImpactMaterial, ImpactVoice, ImpactWave, ATTACK_S, END_LEVEL,
+    MAX_IMPACT_SAMPLES, TAIL_S,
 };
 
 const SR: f64 = 48_000.0;
@@ -243,4 +244,78 @@ fn two_renders_are_the_same() {
             b.iter().map(|s| s.to_bits()).collect::<Vec<_>>()
         );
     }
+}
+
+fn silent(freq: f64, decay_s: f64) -> ImpactVoice {
+    ImpactVoice {
+        freq,
+        slide: 1.0,
+        decay_s,
+        gain: 0.5,
+        wave: ImpactWave::Sine,
+        noise_gain: 0.0,
+        noise_s: 0.0,
+        noise_cutoff: 1000.0,
+    }
+}
+
+/// The largest length is given, and one sample more is refused before anything is allocated.
+#[test]
+fn the_length_has_a_stated_limit() {
+    let rate = 1000.0;
+    let limit = MAX_IMPACT_SAMPLES as f64;
+    let at_limit = silent(100.0, (limit + 0.5) / rate - TAIL_S);
+    assert_eq!(render_impact(&at_limit, rate).len(), MAX_IMPACT_SAMPLES);
+    let beyond = silent(100.0, (limit + 1.5) / rate - TAIL_S);
+    assert!(render_impact(&beyond, rate).is_empty());
+}
+
+/// Lengths that cannot be allocated give no samples: neither an abort nor a panic.
+#[test]
+fn a_length_too_large_to_allocate_gives_no_samples() {
+    assert!(render_impact(&silent(100.0, 1e12), SR).is_empty());
+    assert!(render_impact(&silent(100.0, 1e30), SR).is_empty());
+    assert!(render_impact(&silent(100.0, 0.1), 1e300).is_empty());
+    let mut noise = silent(100.0, 0.1);
+    noise.noise_gain = 0.1;
+    noise.noise_s = 1e300;
+    assert_eq!(
+        render_impact(&noise, SR).len(),
+        render_impact(&silent(100.0, 0.1), SR).len()
+    );
+}
+
+/// The pitch at either end stays at or under half the sample rate.
+#[test]
+fn a_pitch_over_half_the_sample_rate_gives_no_samples() {
+    let half = SR / 2.0;
+    assert!(!render_impact(&silent(half, 0.1), SR).is_empty());
+    assert!(render_impact(&silent(half * 1.001, 0.1), SR).is_empty());
+    assert!(render_impact(&silent(1e308, 0.1), SR).is_empty());
+    let mut up = silent(half / 2.0, 0.1);
+    up.slide = 2.0;
+    assert!(!render_impact(&up, SR).is_empty());
+    up.slide = 2.01;
+    assert!(render_impact(&up, SR).is_empty());
+    up.slide = 1e308;
+    assert!(render_impact(&up, SR).is_empty());
+}
+
+/// A level that leaves the range of a sample gives no samples, not some infinite ones.
+#[test]
+fn a_level_out_of_the_sample_range_gives_no_samples() {
+    for gain in [1e39, 1e308] {
+        let mut v = silent(100.0, 0.1);
+        v.gain = gain;
+        assert!(render_impact(&v, SR).is_empty(), "gain {gain}");
+    }
+    let mut v = silent(100.0, 0.1);
+    v.noise_gain = 1e308;
+    v.noise_s = 0.02;
+    assert!(render_impact(&v, SR).is_empty());
+    // large but in range stays
+    let mut v = silent(100.0, 0.1);
+    v.gain = 1e30;
+    let x = render_impact(&v, SR);
+    assert!(!x.is_empty() && x.iter().all(|s| s.is_finite()));
 }
