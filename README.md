@@ -19,6 +19,8 @@ General-purpose audio processing library for [Project A.L.I.C.E.](https://github
 - **Sample Rate Conversion** — resampling with interpolation
 - **ADSR Envelope** — attack/decay/sustain/release envelope generator
 - **Ring Buffer** — lock-free circular buffer for real-time audio
+- **Impact Sound** — one impact computed from numbers (a decaying tone and a short noise), no sound data; `ImpactVoice::from_speed` maps a speed change and a material to those numbers
+- **WebAssembly** — `renderImpact` and `renderImpactAtSpeed` return samples for a page (feature `wasm`); `scripts/build_neutral_pkg.sh` builds a package with no engine name in it
 - **Bit-identical on every target** — every transcendental (sin, cos, powf, tanh, hypot, atan2) and every
   `f64` max / clamp goes through `alice-det-math`, so each output is a pure function of its input bits on
   Linux, macOS, Windows and wasm32; `tests/cross_target_bits.rs` pins the output bits of every public
@@ -47,6 +49,7 @@ alice-audio
 ├── waveform       — oscillator / waveform generators
 ├── resample       — sample rate conversion
 ├── envelope       — ADSR envelope generator
+├── impact         — one impact from numbers
 └── ring_buffer    — circular buffer for streaming
 ```
 

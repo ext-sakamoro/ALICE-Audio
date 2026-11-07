@@ -47,6 +47,13 @@ step "ci.yml / test: Cross-target bit pins"
     echo "$out" | grep -qE 'pins compared: [1-9][0-9]*[[:space:]]*$' || { echo "no pins compared" >&2; exit 1; }
   done )
 
+step "ci.yml / wasm: Build the WebAssembly binding"
+rustup target list --installed | grep -q '^wasm32-unknown-unknown$' || rustup target add wasm32-unknown-unknown
+( export CARGO_TERM_COLOR="always"
+  cargo build --locked --lib --target wasm32-unknown-unknown --features wasm
+  relint
+  cargo clippy --locked --lib --target wasm32-unknown-unknown --features wasm -- -D warnings )
+
 step "ci.yml / wasm: Cross-target bit pins via wasmtime"
 need wasmtime "brew install wasmtime"
 rustup target list --installed | grep -q '^wasm32-wasip1$' || rustup target add wasm32-wasip1

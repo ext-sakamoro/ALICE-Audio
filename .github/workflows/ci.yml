@@ -67,11 +67,16 @@ jobs:
           targets: wasm32-wasip1
       # dtolnay/rust-toolchain's `targets:` has silently skipped the rustup target add before; the
       # explicit call is idempotent
-      - name: Ensure wasm32-wasip1 rust-std is installed
-        run: rustup target add wasm32-wasip1
+      - name: Ensure wasm32 rust-std is installed
+        run: rustup target add wasm32-wasip1 wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
         with:
           shared-key: wasm-wasip1
+      # the binding a page calls exists only on wasm32 with this feature
+      - name: Build the WebAssembly binding
+        run: |
+          cargo build --locked --lib --target wasm32-unknown-unknown --features wasm
+          cargo clippy --locked --lib --target wasm32-unknown-unknown --features wasm -- -D warnings
       - name: Install wasmtime
         uses: bytecodealliance/actions/wasmtime/setup@v1
       # the same pins as the native lanes, debug and release; cargo runs the binary it just built

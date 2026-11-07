@@ -19,6 +19,8 @@
 - **サンプルレート変換** — 補間によるリサンプリング
 - **ADSRエンベロープ** — アタック/ディケイ/サスティン/リリース包絡線生成
 - **リングバッファ** — リアルタイムオーディオ用循環バッファ
+- **衝撃音** — 減衰する音と短い雑音から 1 回の衝撃音を数値だけで計算 (音の data は使わない) `ImpactVoice::from_speed` は速度変化と材質からその数値を決める
+- **WebAssembly** — `renderImpact` と `renderImpactAtSpeed` がページ向けに sample を返す (feature `wasm`) `scripts/build_neutral_pkg.sh` は engine 名を含まない package を作る
 - **全ての target で bit 一致** — 超越関数 (sin、cos、powf、tanh、hypot、atan2) と `f64` の max / clamp は
   全て `alice-det-math` を通るので、出力は Linux・macOS・Windows・wasm32 で入力の bit だけで決まる
   `tests/cross_target_bits.rs` が全ての公開関数の出力の bit を固定し、CI が Linux・macOS・Windows と wasm32-wasip1 (wasmtime) で確かめる
@@ -46,6 +48,7 @@ alice-audio
 ├── waveform       — オシレータ/波形ジェネレータ
 ├── resample       — サンプルレート変換
 ├── envelope       — ADSRエンベロープ生成
+├── impact         — 数値から 1 回の衝撃音
 └── ring_buffer    — ストリーミング用循環バッファ
 ```
 
