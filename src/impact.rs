@@ -7,7 +7,7 @@
 //! `decay_s`; its pitch moves exponentially from `freq` to `freq * slide` over the same
 //! time. The noise runs at a constant level for `noise_s` through a low-pass.
 
-use alice_det_math::{clamp64, exp64, ln64, min64, sin64};
+use alice_det_math::{clamp64, exp64, ln64, max64, min64, sin64};
 use core::f64::consts::TAU;
 
 use crate::iir::IirFilter;
@@ -108,11 +108,14 @@ impl ImpactVoice {
     fn is_valid(&self, sample_rate: f64) -> bool {
         let positive = |x: f64| x.is_finite() && x > 0.0;
         let not_negative = |x: f64| x.is_finite() && x >= 0.0;
+        let highest_pitch = self.freq * max64(self.slide, 1.0);
         positive(sample_rate)
             && positive(self.freq)
             && positive(self.slide)
+            && highest_pitch <= sample_rate / 2.0
             && self.decay_s.is_finite()
             && self.decay_s > ATTACK_S
+            && (self.decay_s + TAIL_S) * sample_rate < (MAX_IMPACT_SAMPLES + 1) as f64
             && not_negative(self.gain)
             && not_negative(self.noise_gain)
             && not_negative(self.noise_s)
@@ -137,8 +140,11 @@ fn wave_at(wave: ImpactWave, phase: f64) -> f64 {
     }
 }
 
-/// The samples of one impact. Empty when a number is not finite, is out of range
-/// (`decay_s` must exceed [`ATTACK_S`]) or `sample_rate` is not positive.
+/// The samples of one impact.
+///
+/// Empty when a number is not finite or out of range: `decay_s` must exceed [`ATTACK_S`], `sample_rate` must be positive, the pitch at both
+/// ends must be at most half of `sample_rate`, the length at most [`MAX_IMPACT_SAMPLES`],
+/// and every sample must fit an `f32`.
 #[must_use]
 #[allow(clippy::suboptimal_flops, reason = "plain arithmetic on every target")]
 pub fn render_impact(voice: &ImpactVoice, sample_rate: f64) -> Vec<f32> {
@@ -169,5 +175,10 @@ pub fn render_impact(voice: &ImpactVoice, sample_rate: f64) -> Vec<f32> {
             *sample += voice.noise_gain * filter.process(n);
         }
     }
-    out.iter().map(|&x| x as f32).collect()
+    let samples: Vec<f32> = out.iter().map(|&x| x as f32).collect();
+    if samples.iter().all(|x| x.is_finite()) {
+        samples
+    } else {
+        Vec::new()
+    }
 }

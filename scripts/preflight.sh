@@ -48,7 +48,7 @@ step "ci.yml / test: Cross-target bit pins"
   done )
 
 step "ci.yml / wasm: Build the WebAssembly binding"
-rustup target list --installed | grep -q '^wasm32-unknown-unknown$' || rustup target add wasm32-unknown-unknown
+rustup target add wasm32-unknown-unknown
 ( export CARGO_TERM_COLOR="always"
   cargo build --locked --lib --target wasm32-unknown-unknown --features wasm
   relint
@@ -56,7 +56,7 @@ rustup target list --installed | grep -q '^wasm32-unknown-unknown$' || rustup ta
 
 step "ci.yml / wasm: Cross-target bit pins via wasmtime"
 need wasmtime "brew install wasmtime"
-rustup target list --installed | grep -q '^wasm32-wasip1$' || rustup target add wasm32-wasip1
+rustup target add wasm32-wasip1
 ( export CARGO_TERM_COLOR="always" CARGO_TARGET_WASM32_WASIP1_RUNNER="wasmtime"
   for flag in "" "--release"; do
     out=$(cargo test $flag --target wasm32-wasip1 --test cross_target_bits -- --nocapture 2>&1) || { echo "$out"; exit 1; }

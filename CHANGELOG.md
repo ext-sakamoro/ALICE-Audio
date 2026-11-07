@@ -10,7 +10,7 @@ and this crate adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 - `scripts/build_neutral_pkg.sh`: engine 名を含まない WebAssembly package を内容の hash の名前で作る (名前の変換と漏れの検査は ALICE-Physics の `scripts/neutral_pkg.py` と `scripts/neutral_leak_check.py`) `scripts/neutral_equivalence.mjs` が元の package と全 sample の bit 一致を確かめる
 - CI: `wasm32-unknown-unknown` の `wasm` feature の build と clippy (preflight も同じ)
-- `impact` module: `render_impact` と `ImpactVoice` (減衰する音と短い雑音から 1 回の衝撃音を計算する、音の data は使わない) `ImpactVoice::from_speed` は `ImpactMaterial` (`HardMetal` / `Soft`) と速度の変化から値を決める feature `wasm`: `renderImpact` / `renderImpactAtSpeed` 試験 `tests/analytic_impact.rs` (pitch を零交差で、音量を減衰の式で)、出力の bit は `tests/cross_target_bits.rs` で固定
+- `impact` module: `render_impact` と `ImpactVoice` (減衰する音と短い雑音から 1 回の衝撃音を計算する、音の data は使わない) `ImpactVoice::from_speed` は `ImpactMaterial` (`HardMetal` / `Soft`) と速度の変化から値を決める feature `wasm`: `renderImpact` / `renderImpactAtSpeed` 試験 `tests/analytic_impact.rs` (pitch を零交差で、音量を減衰の式で)、出力の bit は `tests/cross_target_bits.rs` で固定 長さは `MAX_IMPACT_SAMPLES` まで、pitch は sample rate の半分まで、`f32` に入らない sample を含むものは空を返す
 
 ### Changed
 
