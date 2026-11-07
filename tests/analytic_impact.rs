@@ -1,6 +1,9 @@
 //! An impact against what its numbers say: pitch by zero crossings, level by the decay
 //! law, length, and the speed mapping. Bits are pinned in `tests/cross_target_bits.rs`.
 
+// the expected values come from the platform's arithmetic, independent of the code under test
+#![allow(clippy::disallowed_methods)]
+
 use alice_audio::{
     render_impact, ImpactMaterial, ImpactVoice, ImpactWave, ATTACK_S, END_LEVEL, TAIL_S,
 };
@@ -106,7 +109,7 @@ fn the_rise_is_a_straight_line_from_silence() {
 #[test]
 fn a_triangle_is_a_triangle() {
     let x = render_impact(&tone(ImpactWave::Triangle, 1.0), SR);
-    for i in 480..960 {
+    for (i, &sample) in x.iter().enumerate().take(960).skip(480) {
         let t = i as f64 / SR;
         let level = 0.5 * END_LEVEL.powf((t - ATTACK_S) / (0.5 - ATTACK_S));
         let p = (t * 1000.0).fract();
@@ -119,9 +122,9 @@ fn a_triangle_is_a_triangle() {
         };
         let want = level * shape;
         assert!(
-            (f64::from(x[i]) - want).abs() < 2e-3,
+            (f64::from(sample) - want).abs() < 2e-3,
             "sample {i}: {} against {want}",
-            x[i]
+            sample
         );
     }
 }
