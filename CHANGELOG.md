@@ -16,6 +16,7 @@ and this crate adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 - **Breaking (2.0.0):** 出力の bit が変わる 超越関数と `f64` の max / clamp を全て `alice-det-math` 0.6.1 に通した (IIR の low / high / band-pass と EQ の peaking の係数設計の sin / cos / powf、FIR の窓関数付き sinc の sin / cos、FFT の回転因子の sin / cos、`Complex::magnitude` の hypot と `Complex::phase` の atan2、chorus の LFO の sin、`apply_gain_db` の powf、`soft_clip` の tanh、`gen_sine` の sin、`peak` の max、delay / reverb / chorus の feedback・mix、`pan_stereo` の pan、`hard_clip` の clamp) これで出力は全ての target (Linux・macOS・Windows・wasm32) で入力の bit だけで決まる 以前は platform の libm で、target によって最後の bit が違った 値の差は各関数の誤差 (≤ 1〜2 ulp) の範囲で、既存の試験 (114 件) は全て許容の中で通る
 - **Breaking (2.0.0):** `hard_clip` の `threshold` が負 (下限 > 上限) でも panic しない (G2 の clamp: 上限が勝つ) 以前の `f64::clamp` は panic した delay / reverb / chorus の `feedback` / `mix` と `pan_stereo` の `pan` も同じ規則で NaN を境界にしない
+- CI: 公開する文面の検査 (`Public text` workflow、`scripts/public_text.sh`) を追加 ALICE-Law の `scripts/public_text_check.py` を `.github/public-text-pin` の revision で取得し、SHA-256 が一致した時だけ使って、HEAD の全 tracked file (path と本文) と送った commit (message・追加行・追加 path) を読む 何も比較できなければ失敗する preflight でも走る
 
 ### Added
 
