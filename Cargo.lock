@@ -13,7 +13,7 @@ dependencies = [
 [[package]]
 name = "alice-det-math"
 version = "0.6.1"
-source = "git+https://github.com/ext-sakamoro/ALICE-DetMath?rev=98fd88465675bb53c0152438b8ead71655063548#98fd88465675bb53c0152438b8ead71655063548"
+source = "git+https://github.com/ext-sakamoro/ALICE-DetMath?branch=main#95934099bfe6aa31296633ac35b023ed74878791"
 
 [[package]]
 name = "bumpalo"
